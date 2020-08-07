@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Football PWA</title>
+  <meta name="description" content="football.data.org" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="css/materialize.min.css">
+  <link rel="stylesheet" href="css/style.css">
+
+  <link rel="shorcut icon" href="/img/icon512.png">
+  <link rel="apple-touch-icon" href="/img/icon512.png">
+
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00897B" />
+</head>
+
+<body>
+  <!-- Navigasi -->
+  <nav class="teal lighten-1" role="navigation">
+    <div class="nav-wrapper container">
+      <a href="/#" class="brand-logo" id="logo-container">Football PWA</a>
+      <a href="#" class="sidenav-trigger" data-target="nav-mobile">☰</a>
+
+      <ul class="topnav right hide-on-med-and-down">
+        <li><a class="waves-effect" href="#" onclick="location.href = '/#home'">Home</a></li>
+        <li><a class="waves-effect" href="#" onclick="location.href = '/#favorite'">Favorite</a></li>
+
+      </ul>
+      <ul class="sidenav" id="nav-mobile">
+        <li><a class="waves-effect" href="#" onclick="location.href = '/#home'">Home</a></li>
+        <li><a class="waves-effect" href="#" onclick="location.href = '/#favorite'">Favorite</a></li>
+      </ul>
+    </div>
+  </nav>
+  <!-- Akhir Navigasi -->
+  <br>
+  <div id="divloading">
+    <div class="preloader-wrapper big active">
+      <div class="spinner-layer spinner-blue-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div>
+        <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <a class="waves-effect waves-light btn" onclick="window.history.back();">Kembali</a>
+  </div>
+  <div class="container" id="main_data"></div>
+
+  <div class="fixed-action-btn" id="btnaction" style="display: none;">
+    <a class="btn-floating btn-large red waves-effect" onclick="ActionButton();">
+      <i class="large material-icons" id="iconbtn">save</i>
+    </a>
+  </div>
+
+  <script src="/js/materialize.min.js"></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/idb.js"></script>
+  <script src="/js/db.js"></script>
+  <script>
+    M.AutoInit();
+    // REGISTER SERVICE WORKER
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker
+          .register("/service-worker.js")
+          .then(function () {
+            console.log("Pendaftaran ServiceWorker berhasil");
+          })
+          .catch(function () {
+            console.log("Pendaftaran ServiceWorker gagal");
+          });
+      });
+    } else console.log("ServiceWorker belum didukung browser ini.");
+
+
+    // MAIN
+    let article = {}
+    let isThere = false;
+    let modeform = new URLSearchParams(window.location.search).get("mode");
+    if (modeform == 'save') isThere = true
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var elems = document.querySelectorAll('.sidenav');
+      M.Sidenav.init(elems, {});
+
+      LoadingShow('flex');
+      let data = RestApi_GetClub()
+      data.then(function (result) {
+        article = {
+          id: result.id,
+          crestUrl: result.crestUrl,
+          name: result.name,
+          area: result.area.name,
+          phone: result.phone,
+          email: result.email,
+          website: result.website
+        }
+        RenderData_Article(article)
+        DBShowItem(result.id).then(function (response) {
+          if (response) {
+            isThere = true;
+            document.getElementById('iconbtn').innerHTML = 'delete';
+          } else {
+            isThere = false;
+            document.getElementById('iconbtn').innerHTML = 'save';
+          }
+
+          document.getElementById('btnaction').style.display = 'block';
+        });
+        LoadingShow('none');
+      });
+
+    });
+
+
+  </script>
+</body>
+
+</html>
